@@ -57,7 +57,7 @@ function parseCsv(text) {
     const rec = {};
     headers.forEach((h, idx) => { rec[h] = (cols[idx] || '').trim().replace(/"/g, ''); });
     if (i === 2) console.log('欄位名稱:', JSON.stringify(headers));
-    if (rec['單價元平方公尺'] && rec['單價元平方公尺'] !== '0' && rec['土地位置建物門牌'] && rec['土地位置建物門牌'].length > 5) {
+    if (rec['單價元平方公尺'] && rec['單價元平方公尺'] !== '0' && rec['交易標的'] && rec['交易標的'].includes('建物')) {
       rec['單價萬坪'] = Math.round(parseFloat(rec['單價元平方公尺']) * 3.3058 / 10000 * 10) / 10;
       rec['總價萬'] = Math.round(parseFloat(rec['總價元']) / 10000);
       rec['坪數'] = Math.round(parseFloat(rec['建物移轉總面積平方公尺']) * 0.3025 * 10) / 10;
