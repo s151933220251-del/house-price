@@ -20,7 +20,7 @@ export default async function handler(req, res) {
       if (!response.ok) continue;
       const text = await response.text();
       console.log('text preview:', text.substring(0, 200));
-      if (text.includes('<') ) continue;
+      if (text.trim().startsWith('<')) continue;
       const records = parseCsv(text);
       const filtered = district ? records.filter(r => r['鄉鎮市區'] === district) : records;
       allRecords.push(...filtered);
