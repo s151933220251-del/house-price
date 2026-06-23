@@ -17,7 +17,7 @@ export default async function handler(req, res) {
         headers: { 'User-Agent': 'Mozilla/5.0' },
         signal: AbortSignal.timeout(10000),
       });
-      if (!response.ok) continue;
+      if (!response.ok) { console.log('failed:', url, response.status); continue; }
       const text = await response.text();
       const records = parseCsv(text);
       const filtered = district ? records.filter(r => r['鄉鎮市區'] === district) : records;
