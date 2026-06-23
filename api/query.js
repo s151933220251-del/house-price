@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       total: allRecords.length,
       stats: calcStats(allRecords),
-      records: allRecords.slice(0, 50).sort((a, b) => (b['交易年月日'] || '').localeCompare(a['交易年月日'] || '')),
+      records: allRecords.filter(r => r['土地位置建物門牌'] && r['土地位置建物門牌'].length > 5).slice(0, 50),
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
