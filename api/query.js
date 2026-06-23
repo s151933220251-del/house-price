@@ -17,7 +17,8 @@ export default async function handler(req, res) {
         signal: AbortSignal.timeout(15000),
       });
       if (!response.ok) continue;
-      const text = await response.text();
+      const buffer = await response.arrayBuffer();
+      const text = new TextDecoder('big5').decode(buffer);
       if (text.includes('<html') || text.includes('<table')) continue;
       const records = parseCsv(text);
       const filtered = district ? records.filter(r => r['鄉鎮市區'] === district) : records;
