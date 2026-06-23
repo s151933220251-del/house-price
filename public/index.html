@@ -263,7 +263,7 @@ async function doQuery() {
     const listHtml = (data.records || []).slice(0, 20).map(r => `
       <div class="rec">
         <div>
-          <div>${CITY_NAMES[city] || city}${district} ${r['土地區段位置或建物區門牌'] || '--'}</div>
+          <div>${CITY_NAMES[city] || city}${district} ${r['土地區段位置或建物區門牌'] || r['土地區段位置'] || r['建物區門牌'] || r['小段'] || ''}</div>
           <div class="rec-addr">${r['建物型態'] || ''} ${r['坪數'] || ''}坪 ${r['移轉層次'] || ''} ${r['交易年月日'] || ''}</div>
         </div>
         <div class="rec-price">
