@@ -263,8 +263,8 @@ async function doQuery() {
     const listHtml = (data.records || []).slice(0, 20).map(r => `
       <div class="rec">
         <div>
-          <div>${CITY_NAMES[city] || city}${district} ${r['土地區段位置或建物區門牌'] || r['土地區段位置'] || r['建物區門牌'] || r['小段'] || ''}</div>
-          <div class="rec-addr">${r['建物型態'] || ''} ${r['坪數'] || ''}坪 ${r['移轉層次'] || ''} ${r['交易年月日'] || ''}</div>
+          <div>${r['土地位置建物門牌'] || r['鄉鎮市區'] || ''}</div>
+          <div class="rec-addr">${r['建物型態'] || ''} ${r['坪數'] || ''}坪 ${r['移轉層次'] || ''} 屋齡${r['建築完成年月'] ? (113 - parseInt(r['建築完成年月'].substring(0,3))) + '年' : '--'} ${r['交易年月日'] || ''}</div>
         </div>
         <div class="rec-price">
           <div>${r['單價萬坪'] || '--'} 萬/坪</div>
