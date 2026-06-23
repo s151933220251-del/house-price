@@ -212,10 +212,11 @@ function loadDist(cityId, distId) {
 }
 
 // 初始化
-['A','F','H','B','D','E'].forEach((_, i) => {});
+ document.addEventListener('DOMContentLoaded', function() {
 loadDist('q-city','q-dist');
 loadDist('t-city','t-dist');
 loadDist('e-city','e-dist');
+});
 
 // ========== Tab 切換 ==========
 function switchTab(id, btn) {
