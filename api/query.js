@@ -39,8 +39,7 @@ export default async function handler(req, res) {
 function getRecentQuarters(n) {
   const now = new Date();
   let y = now.getFullYear() - 1911;
-  let q = Math.ceil((now.getMonth() + 1) / 3) - 1;
-  if (q < 1) { q = 4; y--; }
+  let q = Math.ceil((now.getMonth() + 1) / 3);
   const result = [];
   for (let i = 0; i < n; i++) {
     result.unshift({ rok: y, quarter: q });
