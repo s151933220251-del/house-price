@@ -261,7 +261,7 @@ async function doQuery() {
       <div class="stat"><div class="lbl">成交筆數</div><div class="val">${data.total}</div><div class="unit">筆（近4季）</div></div>
     `;
 
-    const listHtml = (data.records || []).filter(r => r['土地位置建物門牌'] && r['土地位置建物門牌'].length > 5']?.includes('縣')).slice(0, 20).map(r => `
+    const listHtml = (data.records || []).filter(r => r['土地位置建物門牌'] && r['土地位置建物門牌'].length > 5).slice(0, 20).map(r =>
       <div class="rec">
         <div>
           <div>${r['土地位置建物門牌'] || r['鄉鎮市區'] || ''}</div>
