@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
   try {
     for (const q of quarters) {
-      const url = `https://plvr.land.moi.gov.tw/DownloadSeason?season=${q.rok}S${q.quarter}&type=zip&fileName=lvr_landcsv.zip`;
+      const url = `https://plvr.land.moi.gov.tw/DownloadSeason?season=${q.rok}S${q.quarter}&type=${type}&fileName=${type}_lvr_land_${city.toLowerCase()}.csv`;
       const response = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0' },
         signal: AbortSignal.timeout(30000),
