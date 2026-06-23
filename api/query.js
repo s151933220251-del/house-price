@@ -64,7 +64,7 @@ async function extractFromZip(buffer, type, city) {
           return compData.toString('latin1');
         } else if (compression === 8) {
           try {
-            const decompressed = await inflateAsync(compData, { windowBits: -15 });
+            const decompressed = await inflateAsync(compData, { windowBits: 15 });
             return decompressed.toString('latin1');
           } catch(e) {
             console.log('inflate error:', e.message);
