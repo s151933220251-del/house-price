@@ -45,7 +45,7 @@ export default async function handler(req, res) {
 }
 
 async function extractFromZip(buffer, type, city) {
-  const target = `${type.toLowerCase()}_lvr_land_${city.toLowerCase()}.csv`;
+  const target = `${city.toLowerCase()}_lvr_land_${type.toLowerCase()}.csv`;
   let i = 0;
   while (i < buffer.length - 4) {
     if (buffer[i] === 0x50 && buffer[i+1] === 0x4B && buffer[i+2] === 0x03 && buffer[i+3] === 0x04) {
