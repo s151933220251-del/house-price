@@ -55,6 +55,7 @@ async function extractFromZip(buffer, type, city) {
       const nameLen = buffer.readUInt16LE(i + 26);
       const extraLen = buffer.readUInt16LE(i + 28);
       const fileName = buffer.slice(i + 30, i + 30 + nameLen).toString('utf8').toLowerCase();
+      console.log('zip entry:', fileName, 'target:', target);
       const dataStart = i + 30 + nameLen + extraLen;
 
       if (fileName === target || fileName.endsWith(`_${city.toLowerCase()}.csv`)) {
