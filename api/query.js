@@ -33,6 +33,7 @@ export default async function handler(req, res) {
       if (allRecords.length > 200) break;
     }
 
+    console.log('allRecords count:', allRecords.length);
     return res.status(200).json({
       total: allRecords.length,
       stats: calcStats(allRecords),
