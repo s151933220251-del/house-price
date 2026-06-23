@@ -18,8 +18,7 @@ export default async function handler(req, res) {
       });
       console.log('url:', url, 'status:', response.status);
       if (!response.ok) continue;
-      const buffer = await response.arrayBuffer();
-      const text = new TextDecoder('big5').decode(buffer);
+      const text = await response.text();
       console.log('text preview:', text.substring(0, 200));
       if (text.includes('<html') || text.includes('<table')) continue;
       const records = parseCsv(text);
