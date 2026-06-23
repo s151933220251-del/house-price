@@ -1,3 +1,8 @@
+import { promisify } from 'util';
+import { inflate } from 'zlib';
+
+const inflateAsync = promisify(inflate);
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -6,24 +11,26 @@ export default async function handler(req, res) {
   const { type = 'A', city, district } = req.query;
   if (!city) return res.status(400).json({ error: '缺少 city 參數' });
 
-  const quarters = getRecentQuarters(4);
+  const quarters = getRecentQuarters(6);
   const allRecords = [];
 
   try {
     for (const q of quarters) {
-      const url = `https://plvr.land.moi.gov.tw/DownloadSeason?season=${q.rok}S${q.quarter}&type=${type}&fileName=${type}_lvr_land_${city}.csv`;
+      const url = `https://plvr.land.moi.gov.tw/DownloadSeason?season=${q.rok}S${q.quarter}&type=zip&fileName=lvr_landcsv.zip`;
       const response = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(30000),
       });
-      console.log('url:', url, 'status:', response.status);
       if (!response.ok) continue;
-      const text = await response.text();
-      console.log('text preview:', text.substring(0, 200));
-      if (text.trim().startsWith('<')) continue;
-      const records = parseCsv(text);
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+      const csvText = await extractFromZip(buffer, type, city);
+      if (!csvText) continue;
+
+      const records = parseCsv(csvText);
       const filtered = district ? records.filter(r => r['鄉鎮市區'] === district) : records;
       allRecords.push(...filtered);
+      if (allRecords.length > 200) break;
     }
 
     return res.status(200).json({
@@ -34,6 +41,41 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
+}
+
+async function extractFromZip(buffer, type, city) {
+  const target = `${type.toLowerCase()}_lvr_land_${city.toLowerCase()}.csv`;
+  let i = 0;
+  while (i < buffer.length - 4) {
+    if (buffer[i] === 0x50 && buffer[i+1] === 0x4B && buffer[i+2] === 0x03 && buffer[i+3] === 0x04) {
+      const compression = buffer.readUInt16LE(i + 8);
+      const compSize = buffer.readUInt32LE(i + 18);
+      const uncompSize = buffer.readUInt32LE(i + 22);
+      const nameLen = buffer.readUInt16LE(i + 26);
+      const extraLen = buffer.readUInt16LE(i + 28);
+      const fileName = buffer.slice(i + 30, i + 30 + nameLen).toString('utf8').toLowerCase();
+      const dataStart = i + 30 + nameLen + extraLen;
+
+      if (fileName === target || fileName.endsWith(`_${city.toLowerCase()}.csv`)) {
+        const compData = buffer.slice(dataStart, dataStart + compSize);
+        if (compression === 0) {
+          return compData.toString('latin1');
+        } else if (compression === 8) {
+          try {
+            const decompressed = await inflateAsync(compData, { windowBits: -15 });
+            return decompressed.toString('latin1');
+          } catch(e) {
+            console.log('inflate error:', e.message);
+            return null;
+          }
+        }
+      }
+      i = dataStart + compSize;
+    } else {
+      i++;
+    }
+  }
+  return null;
 }
 
 function getRecentQuarters(n) {
