@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const { type = 'A', city, district } = req.query;
   if (!city) return res.status(400).json({ error: '缺少 city 參數' });
 
-  const quarters = getRecentQuarters(6);
+  const quarters = getRecentQuarters(2);
   const allRecords = [];
 
   try {
@@ -30,7 +30,7 @@ export default async function handler(req, res) {
       const records = parseCsv(csvText);
       const filtered = district ? records.filter(r => r['鄉鎮市區'] === district) : records;
       allRecords.push(...filtered);
-      if (allRecords.length > 200) break;
+      if (allRecords.length > 0) break;
     }
 
     console.log('allRecords count:', allRecords.length);
