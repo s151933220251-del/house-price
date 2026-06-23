@@ -16,9 +16,11 @@ export default async function handler(req, res) {
         headers: { 'User-Agent': 'Mozilla/5.0' },
         signal: AbortSignal.timeout(15000),
       });
+      console.log('url:', url, 'status:', response.status);
       if (!response.ok) continue;
       const buffer = await response.arrayBuffer();
       const text = new TextDecoder('big5').decode(buffer);
+      console.log('text preview:', text.substring(0, 200));
       if (text.includes('<html') || text.includes('<table')) continue;
       const records = parseCsv(text);
       const filtered = district ? records.filter(r => r['鄉鎮市區'] === district) : records;
