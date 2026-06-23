@@ -11,7 +11,8 @@ export default async function handler(req, res) {
 
   try {
     for (const q of quarters) {
-      const url = `https://plvr.land.moi.gov.tw/DownloadSeason?season=${q.rok}S${q.quarter}&type=${type}&fileName=${type}_lvr_land_${city}.csv`;
+      const fileCity = {A:'A',B:'B',C:'C',D:'D',E:'E',F:'F',G:'G',H:'H',I:'I',K:'K',M:'M',N:'N',P:'P',Q:'Q',T:'T',U:'U',V:'V',X:'X'}[city] || city;
+      const url = `https://plvr.land.moi.gov.tw/DownloadSeason?season=${q.rok}S${q.quarter}&type=${type}&fileName=${type}_lvr_land_${fileCity}.csv`;
       const response = await fetch(url, {
         headers: { 'User-Agent': 'Mozilla/5.0' },
         signal: AbortSignal.timeout(10000),
