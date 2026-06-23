@@ -56,6 +56,7 @@ function parseCsv(text) {
     if (cols.length < headers.length) continue;
     const rec = {};
     headers.forEach((h, idx) => { rec[h] = (cols[idx] || '').trim().replace(/"/g, ''); });
+    if (i === 2) console.log('欄位名稱:', JSON.stringify(headers));
     if (rec['單價元平方公尺'] && rec['單價元平方公尺'] !== '0') {
       rec['單價萬坪'] = Math.round(parseFloat(rec['單價元平方公尺']) * 3.3058 / 10000 * 10) / 10;
       rec['總價萬'] = Math.round(parseFloat(rec['總價元']) / 10000);
