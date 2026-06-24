@@ -1,7 +1,5 @@
-import { promisify } from 'util';
-import { inflate } from 'zlib';
-
-const inflateAsync = promisify(inflate);
+import { createGunzip } from 'zlib';
+import { Readable } from 'stream';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,29 +9,44 @@ export default async function handler(req, res) {
   const { type = 'A', city, district } = req.query;
   if (!city) return res.status(400).json({ error: '缺少 city 參數' });
 
-  const quarters = getRecentQuarters(2);
+  // 直接用 range request 只下載需要的部分
+  // 改用政府資料開放平台的直接下載連結
+  const quarters = getRecentQuarters(3);
   const allRecords = [];
 
   try {
     for (const q of quarters) {
-      const url = `https://plvr.land.moi.gov.tw/DownloadSeason?season=${q.rok}S${q.quarter}&type=zip&fileName=lvr_landcsv.zip`;
-      const response = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(30000),
-      });
-      if (!response.ok) continue;
+      // 嘗試直接下載單一縣市檔案（用不同的 API endpoint）
+      const urls = [
+        `https://plvr.land.moi.gov.tw/DownloadSeason?season=${q.rok}S${q.quarter}&type=${type}&fileName=${city.toLowerCase()}_lvr_land_${type.toLowerCase()}.csv`,
+        `https://plvr.land.moi.gov.tw/DownloadSeason?season=${q.rok}S${q.quarter}&type=${type}&fileName=${type}_lvr_land_${city}.csv`,
+      ];
 
-      const buffer = Buffer.from(await response.arrayBuffer());
-      const csvText = await extractFromZip(buffer, type, city);
-      if (!csvText) continue;
+      let text = null;
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            signal: AbortSignal.timeout(15000),
+          });
+          if (!response.ok) continue;
+          const t = await response.text();
+          if (t && !t.trim().startsWith('<') && t.length > 100) {
+            text = t;
+            console.log('success url:', url);
+            break;
+          }
+        } catch(e) { continue; }
+      }
 
-      const records = parseCsv(csvText);
+      if (!text) continue;
+
+      const records = parseCsv(text);
       const filtered = district ? records.filter(r => r['鄉鎮市區'] === district) : records;
       allRecords.push(...filtered);
       if (allRecords.length > 0) break;
     }
 
-    console.log('allRecords count:', allRecords.length);
     return res.status(200).json({
       total: allRecords.length,
       stats: calcStats(allRecords),
@@ -42,42 +55,6 @@ export default async function handler(req, res) {
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
-}
-
-async function extractFromZip(buffer, type, city) {
-  const target = `${city.toLowerCase()}_lvr_land_${type.toLowerCase()}.csv`;
-  let i = 0;
-  while (i < buffer.length - 4) {
-    if (buffer[i] === 0x50 && buffer[i+1] === 0x4B && buffer[i+2] === 0x03 && buffer[i+3] === 0x04) {
-      const compression = buffer.readUInt16LE(i + 8);
-      const compSize = buffer.readUInt32LE(i + 18);
-      const uncompSize = buffer.readUInt32LE(i + 22);
-      const nameLen = buffer.readUInt16LE(i + 26);
-      const extraLen = buffer.readUInt16LE(i + 28);
-      const fileName = buffer.slice(i + 30, i + 30 + nameLen).toString('utf8').toLowerCase();
-      console.log('zip entry:', fileName, 'target:', target);
-      const dataStart = i + 30 + nameLen + extraLen;
-
-      if (fileName === target || fileName.endsWith(`_${city.toLowerCase()}.csv`)) {
-        const compData = buffer.slice(dataStart, dataStart + compSize);
-        if (compression === 0) {
-          return compData.toString('latin1');
-        } else if (compression === 8) {
-          try {
-            const decompressed = await inflateAsync(compData);
-            return decompressed.toString('latin1');
-          } catch(e) {
-            console.log('inflate error:', e.message);
-            return null;
-          }
-        }
-      }
-      i = dataStart + compSize;
-    } else {
-      i++;
-    }
-  }
-  return null;
 }
 
 function getRecentQuarters(n) {
