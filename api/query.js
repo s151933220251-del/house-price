@@ -12,7 +12,10 @@ export default async function handler(req, res) {
   if (!city) return res.status(400).json({ error: '缺少 city 參數' });
 
   try {
-    const zipUrl = `https://plvr.land.moi.gov.tw//Download?type=zip&fileName=lvr_landcsv.zip`;
+    const now = new Date();
+    const rok = now.getFullYear() - 1911;
+    const q = Math.ceil((now.getMonth() + 1) / 3);
+    const zipUrl = `https://plvr.land.moi.gov.tw/DownloadSeason?season=${rok}S${q}&type=zip&fileName=lvr_landcsv.zip`;
     const response = await fetch(zipUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0' },
       signal: AbortSignal.timeout(15000),
